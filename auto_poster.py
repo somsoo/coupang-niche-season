@@ -85,6 +85,8 @@ def get_coupang_signature(method, url_path):
     signature = hmac.new(bytes(COUPANG_SECRET_KEY, "utf-8"), message.encode("utf-8"), hashlib.sha256).hexdigest()
     return f"CEA algorithm=HmacSHA256, access-key={COUPANG_ACCESS_KEY}, signed-date={datetime_gmt}, signature={signature}"
 
+COUPANG_SUB_ID = "CloudflareSite"
+
 def search_coupang_products(keyword, limit=3):
     method = 'GET'
     url_path = f"/v2/providers/affiliate_open_api/apis/openapi/products/search?keyword={urllib.parse.quote(keyword)}&limit={limit}"
@@ -97,6 +99,23 @@ def search_coupang_products(keyword, limit=3):
     except Exception as e:
         print(f"Coupang API error: {e}")
     return []
+
+def create_coupang_deeplinks(product_urls, sub_id=COUPANG_SUB_ID):
+    if not product_urls:
+        return []
+    method = 'POST'
+    url_path = '/v2/providers/affiliate_open_api/apis/openapi/v1/deeplink'
+    url = f"https://api-gateway.coupang.com{url_path}"
+    headers = {"Authorization": get_coupang_signature(method, url_path), "Content-Type": "application/json"}
+    body = {"coupangUrls": product_urls, "subId": sub_id}
+    try:
+        response = requests.post(url, headers=headers, json=body, timeout=10)
+        if response.status_code == 200:
+            items = response.json().get('data', [])
+            return [item.get('shortenUrl') for item in items]
+    except Exception as e:
+        print(f"Coupang Deeplink error: {e}")
+    return product_urls
 
 def generate_spec_review(keyword, products):
     p1 = products[0]
@@ -216,6 +235,14 @@ def main():
             "productImage": "https://via.placeholder.com/300?text=Product",
             "productUrl": "https://www.coupang.com"
         })
+
+    # 쿠팡 공식 딥링크 API로 단축링크 및 subId=CloudflareSite 강제 적용
+    raw_urls = [p.get('productUrl') for p in products]
+    short_urls = create_coupang_deeplinks(raw_urls, sub_id=COUPANG_SUB_ID)
+    for idx, short_url in enumerate(short_urls):
+        if short_url:
+            products[idx]['productUrl'] = short_url
+            print(f"  🔗 쿠팡 딥링크 변환 완료 [{idx+1}위]: {short_url} (subId={COUPANG_SUB_ID})")
 
     p1, p2, p3 = products[0], products[1], products[2]
 
