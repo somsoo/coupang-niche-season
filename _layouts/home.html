@@ -10,7 +10,7 @@ layout: default
   {% for post in site.posts limit:20 %}
   <a href="{{ post.url | relative_url }}" class="block bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
     {% if post.image %}
-    <div class="aspect-video w-full overflow-hidden bg-slate-100">
+    <div class="aspect-[21/9] w-full overflow-hidden bg-slate-900">
       <img src="{{ post.image | relative_url }}" alt="{{ post.title }}" class="w-full h-full object-cover">
     </div>
     {% endif %}

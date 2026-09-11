@@ -13,7 +13,7 @@ layout: default
   </header>
 
   {% if page.image %}
-  <div class="w-full h-48 sm:h-64 md:h-72 rounded-xl overflow-hidden mb-8 bg-slate-900 shadow-md">
+  <div class="w-full aspect-[21/9] rounded-xl overflow-hidden mb-8 bg-slate-900 shadow-md">
     <img src="{{ page.image | relative_url }}" class="w-full h-full object-cover" alt="Hero Image">
   </div>
   {% endif %}
