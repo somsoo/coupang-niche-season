@@ -120,7 +120,8 @@ def generate_spec_review(keyword, products):
     p2 = products[1] if len(products) > 1 else p1
     p3 = products[2] if len(products) > 2 else p2
 
-    print("  ▶ [Pass 1/2] 3-Pick 스펙 비교 초안(Draft) 작성 중...")
+    # ── Pass 1/3: 초안(Draft) 작성 ──────────────────────────────
+    print("  ▶ [Pass 1/3] 3-Pick 스펙 비교 초안(Draft) 작성 중...")
     draft_prompt = f"""당신은 노써치(Nosearch) 및 와이어커터(Wirecutter) 수준의 대한민국 최상위 테크/가전 리뷰 수석 에디터입니다.
 주제 키워드: {keyword}
 
@@ -139,27 +140,79 @@ def generate_spec_review(keyword, products):
     draft = generate_with_retry(draft_prompt)
     time.sleep(1)
 
-    print("  ▶ [Pass 2/2] 구글 Reviews System 300점 만점 기준 자체 비판 및 정밀 재작성(Rewrite) 중...")
-    critique_and_rewrite_prompt = f"""당신은 구글 공식 'Google Search Reviews System' 평가관이자 상위 1% 테크 전문 에디터입니다.
-아래 초안을 면밀히 분석하여, AI 특유의 어색한 번역투, 뻔한 칭찬, 모호한 스펙 표현을 완전히 걷어내고,
-독자가 읽었을 때 '진짜 가전 전문가가 직접 비교 분석한 신뢰도 높은 글'이 되도록 2000자 내외로 완벽히 재작성(Rewrite)하세요.
+    # ── Pass 2/3: 비판만 (JSON 출력, 재작성 없음) ────────────────
+    print("  ▶ [Pass 2/3] Google Reviews System 기준 집중 비판(Critique) 중... (재작성 없음)")
+    critique_prompt = f"""당신은 구글 공식 'Google Search Reviews System' 수석 평가관입니다.
+아래 초안을 읽고, 재작성은 절대 하지 말고 오직 문제점 분석만 수행하여 JSON으로 출력하세요.
 
-[필수 리라이트 규칙]
-1. 제목이나 마크다운 H1 (#) 태그는 절대 출력하지 마세요. 바로 본문 첫 문장으로 시작하세요.
-2. 첫 3문장: 바쁜 현대인을 위해 왜 이 3개 모델로 압축했는지 핵심 결론을 직관적으로 선제시하세요.
-3. 3초 요약 박스 (<div class="summary-box">): 1위 국민템, 2위 가성비, 3위 프리미엄을 각각 1줄로 명확히 규정하세요.
-4. 구글 Reviews System 필수 충족:
-   - 구매 전 체크해야 할 스펙 기준 3가지(소음, 소비전력, 소재 등)를 전문적으로 보강하세요.
-   - 3개 모델 분석 시 '👍 장점 2가지'와 '⚠️ 솔직한 단점/아쉬운 점(Cons) 1가지'를 명확히 구분하세요. 단점이 솔직해야 독자 신뢰도가 오르고 구글 AI 필터를 우회합니다.
-5. 중간 링크 마커: 각 제품 설명 직후 단독 줄로 반드시 '<!-- CTA_BUTTON_1 -->', '<!-- CTA_BUTTON_2 -->', '<!-- CTA_BUTTON_3 -->'를 1회씩 그대로 유지하세요.
-6. 스펙 비교표: 3개 제품의 [포지셔닝 | 상품명 | 가격대 | 핵심스펙 1 | 핵심스펙 2 | 추천대상] 6열 마크다운 테이블을 반드시 완성도 높게 포함하세요.
-7. 말투: 상업적 낚시성 어조를 완전히 배제하고, 객관적이고 신뢰감 있는 전문 분석 톤을 유지하세요.
+[평가 기준]
+1. AI 번역투/클리셰 표현 (예: "최적의 선택", "탁월한 성능" 등 뻔한 문구)
+2. 모호한 스펙 표현 (정량적 수치 없이 "빠르다", "조용하다" 등만 사용)
+3. 단점(Cons)이 솔직하지 않거나 너무 약하게 표현된 부분
+4. 독자 신뢰도를 해치는 과장 또는 낚시성 어조
+5. 구조적 누락 (요약박스/스펙표/CTA마커 중 빠진 것)
+6. 첫 3문장이 결론을 선제시하지 않는 경우
+
+반드시 아래 JSON 형식으로만 답하세요:
+{{
+  "score": 0~100,
+  "critical_issues": ["치명적 문제 1", "치명적 문제 2"],
+  "minor_issues": ["경미한 문제 1", "경미한 문제 2"],
+  "strengths": ["잘 된 점 1", "잘 된 점 2"],
+  "rewrite_instructions": ["Pass 3에서 반드시 고쳐야 할 구체적 지시사항 1", "지시사항 2", "지시사항 3"]
+}}
 
 [1차 초안]
 {draft}
 """
-    final_review = generate_with_retry(critique_and_rewrite_prompt)
+    critique_json_str = generate_with_retry(critique_prompt, is_json=True)
+    try:
+        import json as _json
+        critique = _json.loads(critique_json_str)
+        score = critique.get('score', '?')
+        critical = critique.get('critical_issues', [])
+        instructions = critique.get('rewrite_instructions', [])
+        print(f"    → 비판 점수: {score}/100 | 치명적 문제: {len(critical)}개 | 재작성 지시: {len(instructions)}개")
+    except Exception:
+        critique = {"rewrite_instructions": [], "critical_issues": []}
+        print("    → 비판 JSON 파싱 실패, 원문 사용")
+    time.sleep(1)
+
+    # ── Pass 3/3: 비판 결과 주입 → 정밀 재작성 ──────────────────
+    print("  ▶ [Pass 3/3] 비판 결과 기반 정밀 재작성(Rewrite) 중...")
+    rewrite_instructions_str = "\n".join(
+        [f"  - {inst}" for inst in critique.get('rewrite_instructions', [])]
+    ) or "  - 전반적으로 더 전문적이고 신뢰감 있는 톤으로 개선"
+
+    critical_issues_str = "\n".join(
+        [f"  - {issue}" for issue in critique.get('critical_issues', [])]
+    ) or "  - 없음"
+
+    rewrite_prompt = f"""당신은 상위 1% 테크 전문 에디터입니다.
+아래 1차 초안과 2차 비판 결과를 모두 참고하여, 지적된 문제를 완벽히 수정한 최종본을 작성하세요.
+
+[2차 비판에서 지적된 치명적 문제]
+{critical_issues_str}
+
+[Pass 3에서 반드시 반영할 재작성 지시사항]
+{rewrite_instructions_str}
+
+[절대 규칙 - 반드시 준수]
+1. 제목/H1(#) 태그 절대 출력 금지. 바로 본문 첫 문장으로 시작.
+2. 첫 3문장: 왜 이 3개 모델인지 핵심 결론을 직관적으로 선제시.
+3. <div class="summary-box"> 요약 박스 반드시 포함.
+4. 각 제품마다 '👍 장점 2가지' + '⚠️ 솔직한 단점 1가지' 명확히 구분.
+5. <!-- CTA_BUTTON_1 -->, <!-- CTA_BUTTON_2 -->, <!-- CTA_BUTTON_3 --> 마커 반드시 각 제품 직후에 1회씩 유지.
+6. [포지셔닝 | 상품명 | 가격대 | 핵심스펙 1 | 핵심스펙 2 | 추천대상] 6열 스펙 비교표 필수 포함.
+7. 상업적 낚시성 어조 완전 배제. 객관적·전문적 분석 톤 유지.
+
+[1차 초안 (참고용)]
+{draft}
+"""
+    final_review = generate_with_retry(rewrite_prompt)
     return final_review
+
+
 
 def create_hero_thumbnail(title_text, output_path):
     w, h = 1200, 675
