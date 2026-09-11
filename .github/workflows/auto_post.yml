@@ -1,0 +1,38 @@
+name: Auto Publish
+on:
+  schedule:
+    - cron: '15 4,12,20 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install google-generativeai requests pillow python-dotenv
+      - name: Run Auto Poster
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
+          COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+          NAVER_CUSTOMER_ID: ${{ secrets.NAVER_CUSTOMER_ID }}
+          NAVER_ACCESS_LICENSE: ${{ secrets.NAVER_ACCESS_LICENSE }}
+          NAVER_SECRET_KEY: ${{ secrets.NAVER_SECRET_KEY }}
+        run: python auto_poster.py
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add _posts/ assets/ used_keywords.txt
+          git commit -m "docs: auto-generate high-cvr spec review" || echo "No changes to commit"
+          git push origin main

@@ -1,0 +1,24 @@
+---
+layout: default
+---
+<div class="text-center py-8 mb-8 border-b border-slate-200">
+  <h1 class="text-3xl font-extrabold text-slate-900 mb-2">{{ site.title }}</h1>
+  <p class="text-slate-600 text-base max-w-xl mx-auto">{{ site.description }}</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  {% for post in site.posts limit:20 %}
+  <a href="{{ post.url | relative_url }}" class="block bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+    {% if post.image %}
+    <div class="aspect-video w-full overflow-hidden bg-slate-100">
+      <img src="{{ post.image | relative_url }}" alt="{{ post.title }}" class="w-full h-full object-cover">
+    </div>
+    {% endif %}
+    <div class="p-5">
+      <div class="text-xs text-blue-600 font-bold mb-1">{{ post.date | date: "%Y.%m.%d" }}</div>
+      <h2 class="text-lg font-bold text-slate-900 mb-2 line-clamp-2">{{ post.title }}</h2>
+      <p class="text-slate-500 text-sm line-clamp-2">{{ post.excerpt | strip_html | truncatewords: 20 }}</p>
+    </div>
+  </a>
+  {% endfor %}
+</div>

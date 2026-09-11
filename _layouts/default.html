@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page.title | escape }} | {{ site.title | escape }}</title>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2228289204702106" crossorigin="anonymous"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; color: #1e293b; }
+    
+    .prose p { margin-bottom: 1.5em !important; line-height: 1.8 !important; word-break: keep-all; }
+    .prose h2 { font-size: 1.35rem !important; margin-top: 2em !important; margin-bottom: 0.8em !important; font-weight: 800; color: #0f172a; word-break: keep-all; }
+    .prose h3 { font-size: 1.15rem !important; margin-top: 1.5em !important; margin-bottom: 0.5em !important; font-weight: 700; color: #1e293b; word-break: keep-all; }
+    
+    /* 3초 요약 박스 */
+    .summary-box {
+      background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+      border: 1px solid #bfdbfe;
+      border-left: 5px solid #2563eb;
+      border-radius: 0.75rem;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0 2rem 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .summary-box p { margin-bottom: 0.5rem !important; }
+    .summary-box ul { margin: 0 !important; padding-left: 1.25rem !important; }
+    .summary-box li { margin-bottom: 0.35rem !important; font-size: 0.95rem; }
+
+    /* 모바일 최우선 3-Pick 카드 컨테이너 */
+    .pick-cards-wrap {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      margin: 2rem 0 2.5rem 0;
+    }
+    @media (min-width: 768px) {
+      .pick-cards-wrap { grid-template-columns: repeat(3, 1fr); }
+    }
+    .pick-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .pick-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+    }
+    .pick-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.3rem 0.6rem;
+      border-radius: 9999px;
+      margin-bottom: 0.75rem;
+      width: fit-content;
+    }
+    .badge-gold { background: #fef08a; color: #854d0e; }
+    .badge-silver { background: #e2e8f0; color: #334155; }
+    .badge-bronze { background: #fed7aa; color: #9a3412; }
+    
+    .pick-img { width: 100%; height: 160px; object-fit: contain; margin-bottom: 0.75rem; border-radius: 0.5rem; }
+    .pick-name { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .pick-price { font-size: 1.15rem; font-weight: 800; color: #dc2626; margin-bottom: 0.5rem; }
+    .pick-feature { font-size: 0.85rem; color: #64748b; margin-bottom: 1rem; flex-grow: 1; }
+
+    /* 고전환 CTA 버튼 */
+    .btn-cta {
+      display: block;
+      width: 100%;
+      text-align: center;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: #ffffff !important;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      text-decoration: none !important;
+      box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+      transition: opacity 0.15s;
+    }
+    .btn-cta:hover { opacity: 0.9; }
+
+    .btn-cta-mid {
+      display: inline-block;
+      background: #0284c7;
+      color: #ffffff !important;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: 0.5rem;
+      text-decoration: none !important;
+      box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+    }
+    .btn-cta-mid:hover { background: #0369a1; }
+
+    /* 반응형 스펙 비교표 */
+    .table-responsive { width: 100%; overflow-x: auto; margin: 1.5rem 0 2.5rem 0; border-radius: 0.75rem; border: 1px solid #e2e8f0; }
+    .spec-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left; }
+    .spec-table th { background: #f1f5f9; padding: 0.75rem 1rem; font-weight: 700; color: #334155; border-bottom: 2px solid #cbd5e1; }
+    .spec-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #e2e8f0; color: #475569; }
+    .spec-table tr:hover { background: #f8fafc; }
+    .spec-table .table-link { color: #dc2626; font-weight: 700; text-decoration: underline; }
+
+    /* 장점/단점 박스 */
+    .pros-cons-wrap { display: grid; grid-template-columns: 1fr; gap: 1rem; margin: 1rem 0; }
+    @media (min-width: 640px) { .pros-cons-wrap { grid-template-columns: 1fr 1fr; } }
+    .pros-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem; padding: 1rem; }
+    .cons-box { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 0.5rem; padding: 1rem; }
+    .pros-title { font-weight: 700; color: #166534; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    .cons-title { font-weight: 700; color: #9a3412; margin-bottom: 0.5rem; font-size: 0.9rem; }
+
+    /* 애드센스 컨테이너 */
+    .ad-slot-wrap { margin: 2.5rem auto; text-align: center; width: 100%; max-width: 100%; overflow: hidden; }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <a href="{{ site.baseurl }}/" class="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+        <span class="text-blue-600">⚡</span> {{ site.title }}
+      </a>
+      <nav class="flex items-center gap-4 text-sm font-medium text-slate-600">
+        <a href="{{ site.baseurl }}/" class="hover:text-blue-600">홈</a>
+        <a href="{{ site.baseurl }}/all_posts.html" class="hover:text-blue-600">전체 가이드</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-4xl mx-auto px-4 py-8 w-full">
+    {{ content }}
+  </main>
+
+  <footer class="bg-slate-900 text-slate-400 py-10 mt-16 border-t border-slate-800">
+    <div class="max-w-4xl mx-auto px-4 text-center text-xs space-y-2">
+      <p class="font-semibold text-slate-300">{{ site.title }} | 객관적 스펙 비교 & 구매 가이드</p>
+      <p>본 사이트의 추천 정보는 대가성 및 실제 구매자 리뷰 평점과 스펙 데이터를 종합하여 독립적으로 선정됩니다.</p>
+      <p class="text-slate-500 pt-2">© 2026 {{ site.title }}. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

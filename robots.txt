@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://season.enjoy-onepage.com/sitemap.xml
