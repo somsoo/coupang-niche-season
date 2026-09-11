@@ -350,6 +350,7 @@ def main():
 
     create_hero_thumbnail(target_keyword, thumb_path)
 
+    post_title = f"2026년 {target_keyword} 추천 TOP 3 스펙 비교 및 구매 가이드"
     clean_kw = re.sub(r'[^\w\s-]', '', target_keyword).strip()
     safe_slug = re.sub(r'[-\s]+', '-', clean_kw)
     post_slug = f"{date_str}-{safe_slug}"
