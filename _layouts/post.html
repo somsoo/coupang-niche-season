@@ -13,8 +13,8 @@ layout: default
   </header>
 
   {% if page.image %}
-  <div class="w-full banner-slim rounded-xl overflow-hidden mb-8 bg-slate-900 shadow-md">
-    <img src="{{ page.image | relative_url }}" class="w-full h-full object-cover" alt="Hero Image">
+  <div class="w-full rounded-xl overflow-hidden mb-8 bg-slate-900 shadow-md">
+    <img src="{{ page.image | relative_url }}" class="w-full h-auto block" alt="Hero Image">
   </div>
   {% endif %}
 
