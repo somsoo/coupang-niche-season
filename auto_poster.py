@@ -233,18 +233,22 @@ def main():
         seeds = [line.strip() for line in f if line.strip()]
 
     used_file = "used_keywords.txt"
-    used_keywords = set()
+    used_keywords_list = []
     if os.path.exists(used_file):
         with open(used_file, "r", encoding="utf-8") as f:
-            used_keywords = set(line.strip() for line in f if line.strip())
+            used_keywords_list = [line.strip() for line in f if line.strip()]
+    used_keywords_set = set(used_keywords_list)
 
     random.shuffle(seeds)
     target_keyword = None
+    all_candidate_metrics = []
 
+    # 1단계: 미사용 황금 키워드 우선 탐색
     for seed in seeds:
         metrics = get_trending_keywords(seed)
         if metrics:
-            available = [m for m in metrics if m['keyword'] not in used_keywords]
+            all_candidate_metrics.extend(metrics)
+            available = [m for m in metrics if m['keyword'] not in used_keywords_set]
             golden = [m for m in available if 500 <= m['volume'] <= 50000]
             if golden:
                 golden.sort(key=lambda x: x['volume'], reverse=True)
@@ -253,12 +257,17 @@ def main():
             elif available:
                 target_keyword = available[0]['keyword']
                 break
-        if seed not in used_keywords:
+        if seed not in used_keywords_set:
             target_keyword = f"{seed} 추천"
             break
 
+    # 2단계: 모든 키워드가 소진된 경우 (FIFO 자연 순환)
     if not target_keyword:
-        target_keyword = f"{random.choice(seeds)} 추천"
+        print("ℹ️ 모든 키워드 풀 1회 소진 확인: 가장 오래전에 작성된 키워드부터 자연 순환(FIFO) 발동")
+        if used_keywords_list:
+            target_keyword = used_keywords_list[0]
+        else:
+            target_keyword = f"{random.choice(seeds)} 추천"
 
     print(f"✨ 확정 타깃 키워드: [{target_keyword}]")
 
@@ -332,6 +341,14 @@ def main():
     review_body = review_body.replace("<!-- CTA_BUTTON_3 -->", btn3)
 
 
+    guide_banner = f"""
+<div style="background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%); border: 1px solid #bfdbfe; border-left: 5px solid #2563eb; border-radius: 0.75rem; padding: 1.25rem 1.5rem; margin: 2rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+  <p style="margin: 0 0 0.5rem 0; font-weight: 800; color: #1e3a8a; font-size: 1.05rem;">📖 {SITE_NAME} 공식 가이드북 안내</p>
+  <p style="margin: 0 0 0.75rem 0; font-size: 0.95rem; color: #334155; line-height: 1.6;">본 포스팅의 세부 분석 외에, 실패 없는 선택 기준과 핵심 체크리스트를 집대성한 종합 가이드를 확인해보세요.</p>
+  <a href="/guide/" style="display: inline-block; background: #2563eb; color: #ffffff !important; font-weight: 700; font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none;">👉 {SITE_NAME} 2026 공식 가이드북 보러가기</a>
+</div>
+"""
+
     ftc_notice = """
 <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 50px; margin-bottom: 20px;">
   이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
@@ -339,8 +356,7 @@ def main():
 """
 
     # 광고는 _layouts/post.html 레이아웃에서 관리 (위치 변경 시 레이아웃 파일만 수정)
-    final_content = cards_html + "\n\n" + review_body + "\n\n" + ftc_notice
-
+    final_content = cards_html + "\n\n" + review_body + "\n\n" + guide_banner + "\n\n" + ftc_notice
 
     now = datetime.datetime.now()
     date_str = now.strftime("%Y-%m-%d")
@@ -372,8 +388,12 @@ image: "/assets/images/{thumb_name}"
     with open(post_path, "w", encoding="utf-8") as f:
         f.write(post_frontmatter)
 
-    with open(used_file, "a", encoding="utf-8") as f:
-        f.write(f"{target_keyword}\n")
+    # used_keywords.txt 관리 (FIFO: 사용한 키워드는 항상 최하단으로 갱신)
+    updated_used = [k for k in used_keywords_list if k != target_keyword]
+    updated_used.append(target_keyword)
+    with open(used_file, "w", encoding="utf-8") as f:
+        for kw in updated_used:
+            f.write(f"{kw}\n")
 
     print(f"✅ 포스팅 생성 완료: {post_path}")
 

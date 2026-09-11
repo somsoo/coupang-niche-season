@@ -16,4 +16,5 @@ exclude:
   - vendor
   - used_keywords.txt
 header_pages:
+  - guide/index.md
   - all_posts.md
