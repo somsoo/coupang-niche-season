@@ -20,7 +20,7 @@ if not api_keys_str:
     exit(1)
 
 API_KEYS = [k.strip() for k in api_keys_str.split(',') if k.strip()]
-MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash']
+MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']
 
 def generate_with_retry(prompt, is_json=False):
     for key in API_KEYS:
@@ -122,36 +122,46 @@ def generate_spec_review(keyword, products):
     p2 = products[1] if len(products) > 1 else p1
     p3 = products[2] if len(products) > 2 else p2
 
-    prompt = f"""당신은 노써치(Nosearch) 및 뉴욕타임스 와이어커터(Wirecutter) 수준의 대한민국 최상위 테크/가전 리뷰 수석 에디터입니다.
-구글 공식 'Google Search Reviews System' 가이드라인을 완벽히 충족하는 3-Pick 스펙 비교 가이드 본문을 작성하세요.
-
+    print("  ▶ [Pass 1/2] 3-Pick 스펙 비교 초안(Draft) 작성 중...")
+    draft_prompt = f"""당신은 노써치(Nosearch) 및 와이어커터(Wirecutter) 수준의 대한민국 최상위 테크/가전 리뷰 수석 에디터입니다.
 주제 키워드: {keyword}
 
-선정된 후보 제품 3종:
-[후보 1 (종합 1위/국민템)]
-- 상품명: {p1.get('productName')}
-- 가격: {p1.get('productPrice', '')}원
-[후보 2 (가성비 추천)]
-- 상품명: {p2.get('productName')}
-- 가격: {p2.get('productPrice', '')}원
-[후보 3 (하이엔드/프리미엄)]
-- 상품명: {p3.get('productName')}
-- 가격: {p3.get('productPrice', '')}원
+후보 제품 3종:
+1. 종합 1위/국민템: {p1.get('productName')} ({p1.get('productPrice', '')}원)
+2. 가성비 추천: {p2.get('productName')} ({p2.get('productPrice', '')}원)
+3. 하이엔드/프리미엄: {p3.get('productName')} ({p3.get('productPrice', '')}원)
 
-[작성 필수 규칙]
-1. 제목: 2026년 {keyword} 추천 TOP 3 스펙 비교 및 구매 가이드 (마크다운 H1 # 제목 출력 금지, 본문 바로 시작)
-2. 첫 3문장: 서론을 길게 쓰지 말고, 바쁜 현대인을 위해 왜 이 3개 모델로 압축했는지 핵심 결론 선제시.
-3. 3초 요약 박스 (HTML <div class="summary-box">): 1위 국민템, 2위 가성비, 3위 프리미엄을 각각 1줄로 규정.
-4. 구글 Reviews System 필수 충족:
-   - 구매 전 반드시 체크해야 할 스펙 기준 3가지 (정량적 수치 포함: 소음 dB, 소비전력 W, 소재 등)
-   - 3개 모델의 심층 분석 섹션 작성: 각 모델마다 반드시 '👍 장점 2가지'와 '⚠️ 솔직한 단점/아쉬운 점 1가지(Cons)'를 명시할 것.
-   - 단점이 솔직하게 들어가야 구글 AI 필터를 통과하고 소비자 신뢰도가 극대화됩니다.
-5. 중간 링크 마커: 각 제품 심층 분석 문단 끝에 단독 줄로 정확히 '<!-- CTA_BUTTON_1 -->', '<!-- CTA_BUTTON_2 -->', '<!-- CTA_BUTTON_3 -->'를 1개씩 삽입할 것.
-6. 스펙 비교표 데이터: 본문 중간에 3개 제품의 [포지셔닝 | 가격대 | 핵심스펙 2가지 | 추천대상]을 비교하는 마크다운 테이블을 반드시 포함할 것.
-7. 말투: 상업적 광고 느낌을 철저히 배제하고, 차분하고 전문적인 엔지니어/에디터의 객관적 분석 톤 유지.
-8. 분량: 공백 제외 2,000자 내외.
+위 3종을 바탕으로 다음 요소를 포함한 1차 초안을 작성하세요:
+- 3초 요약 박스 (<div class="summary-box">)
+- 구매 전 필수 체크 스펙 3가지 (정량적 수치 포함: dB, W 등)
+- 제품별 상세 분석 (각 모델마다 장점 2개와 솔직한 단점 1개 명시)
+- 핵심 스펙 6열 비교 마크다운 테이블
+- 중간 링크 마커 '<!-- CTA_BUTTON_1 -->', '<!-- CTA_BUTTON_2 -->', '<!-- CTA_BUTTON_3 -->' 삽입
 """
-    return generate_with_retry(prompt)
+    draft = generate_with_retry(draft_prompt)
+    time.sleep(1)
+
+    print("  ▶ [Pass 2/2] 구글 Reviews System 300점 만점 기준 자체 비판 및 정밀 재작성(Rewrite) 중...")
+    critique_and_rewrite_prompt = f"""당신은 구글 공식 'Google Search Reviews System' 평가관이자 상위 1% 테크 전문 에디터입니다.
+아래 초안을 면밀히 분석하여, AI 특유의 어색한 번역투, 뻔한 칭찬, 모호한 스펙 표현을 완전히 걷어내고,
+독자가 읽었을 때 '진짜 가전 전문가가 직접 비교 분석한 신뢰도 높은 글'이 되도록 2000자 내외로 완벽히 재작성(Rewrite)하세요.
+
+[필수 리라이트 규칙]
+1. 제목이나 마크다운 H1 (#) 태그는 절대 출력하지 마세요. 바로 본문 첫 문장으로 시작하세요.
+2. 첫 3문장: 바쁜 현대인을 위해 왜 이 3개 모델로 압축했는지 핵심 결론을 직관적으로 선제시하세요.
+3. 3초 요약 박스 (<div class="summary-box">): 1위 국민템, 2위 가성비, 3위 프리미엄을 각각 1줄로 명확히 규정하세요.
+4. 구글 Reviews System 필수 충족:
+   - 구매 전 체크해야 할 스펙 기준 3가지(소음, 소비전력, 소재 등)를 전문적으로 보강하세요.
+   - 3개 모델 분석 시 '👍 장점 2가지'와 '⚠️ 솔직한 단점/아쉬운 점(Cons) 1가지'를 명확히 구분하세요. 단점이 솔직해야 독자 신뢰도가 오르고 구글 AI 필터를 우회합니다.
+5. 중간 링크 마커: 각 제품 설명 직후 단독 줄로 반드시 '<!-- CTA_BUTTON_1 -->', '<!-- CTA_BUTTON_2 -->', '<!-- CTA_BUTTON_3 -->'를 1회씩 그대로 유지하세요.
+6. 스펙 비교표: 3개 제품의 [포지셔닝 | 상품명 | 가격대 | 핵심스펙 1 | 핵심스펙 2 | 추천대상] 6열 마크다운 테이블을 반드시 완성도 높게 포함하세요.
+7. 말투: 상업적 낚시성 어조를 완전히 배제하고, 객관적이고 신뢰감 있는 전문 분석 톤을 유지하세요.
+
+[1차 초안]
+{draft}
+"""
+    final_review = generate_with_retry(critique_and_rewrite_prompt)
+    return final_review
 
 def create_hero_thumbnail(title_text, output_path):
     w, h = 1200, 675
