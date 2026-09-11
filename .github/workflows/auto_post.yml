@@ -20,7 +20,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install google-generativeai requests pillow python-dotenv
-      - name: Run Auto Poster
+      - name: Run Auto Poster (With Auto-Retry)
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: python auto_poster.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
@@ -28,7 +34,6 @@ jobs:
           NAVER_CUSTOMER_ID: ${{ secrets.NAVER_CUSTOMER_ID }}
           NAVER_ACCESS_LICENSE: ${{ secrets.NAVER_ACCESS_LICENSE }}
           NAVER_SECRET_KEY: ${{ secrets.NAVER_SECRET_KEY }}
-        run: python auto_poster.py
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
