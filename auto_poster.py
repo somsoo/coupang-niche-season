@@ -198,30 +198,54 @@ def create_hero_thumbnail(title_text, output_path):
     img = Image.new("RGB", (w, h), color=(15, 23, 42))
     draw = ImageDraw.Draw(img)
 
+    # 테크 프리미엄 배경 그라데이션
     for y in range(h):
-        r = int(15 + (y / h) * 15)
-        g = int(23 + (y / h) * 20)
-        b = int(42 + (y / h) * 35)
+        r = int(15 + (y / h) * 12)
+        g = int(23 + (y / h) * 25)
+        b = int(42 + (y / h) * 50)
         draw.line([(0, y), (w, y)], fill=(r, g, b))
 
-    draw.rounded_rectangle([60, 60, 220, 110], radius=8, fill=(37, 99, 235))
-    
+    # 모던 테두리 액센트 라인
+    draw.line([(60, 160), (1140, 160)], fill=(30, 41, 59), width=2)
+    draw.line([(60, 520), (1140, 520)], fill=(30, 41, 59), width=2)
+
     font_path = "NanumGothic-Bold.ttf"
     if not os.path.exists(font_path):
         font_path = r"c:\Windows\Fonts\malgunbd.ttf" if os.path.exists(r"c:\Windows\Fonts\malgunbd.ttf") else None
 
     try:
-        font_logo = ImageFont.truetype(font_path, 24) if font_path else ImageFont.load_default()
-        font_main = ImageFont.truetype(font_path, 52) if font_path else ImageFont.load_default()
-        font_sub = ImageFont.truetype(font_path, 28) if font_path else ImageFont.load_default()
+        font_badge = ImageFont.truetype(font_path, 22) if font_path else ImageFont.load_default()
+        font_main = ImageFont.truetype(font_path, 68) if font_path else ImageFont.load_default()
+        font_sub = ImageFont.truetype(font_path, 34) if font_path else ImageFont.load_default()
+        font_tag = ImageFont.truetype(font_path, 24) if font_path else ImageFont.load_default()
     except:
-        font_logo = font_main = font_sub = ImageFont.load_default()
+        font_badge = font_main = font_sub = font_tag = ImageFont.load_default()
 
-    draw.text((80, 72), "SPEC REVIEW", fill=(255, 255, 255), font=font_logo)
-    
-    draw.text((60, 220), title_text, fill=(255, 255, 255), font=font_main)
-    draw.text((60, 310), "2026 TOP 3 스펙 비교 & 구매 가이드", fill=(56, 189, 248), font=font_sub)
-    draw.text((60, 560), f"⚡ {SITE_NAME} | {SITE_DOMAIN}", fill=(148, 163, 184), font=font_logo)
+    # 상단 뱃지 2종 (전문성 강조)
+    draw.rounded_rectangle([60, 60, 240, 115], radius=10, fill=(37, 99, 235))
+    draw.text((80, 75), "SPEC REVIEW", fill=(255, 255, 255), font=font_badge)
+
+    draw.rounded_rectangle([255, 60, 460, 115], radius=10, fill=(30, 41, 59), outline=(56, 189, 248), width=1)
+    draw.text((275, 75), "2026 OFFICIAL PICK", fill=(56, 189, 248), font=font_badge)
+
+    # 중앙 메인 키워드 타이틀 (68px 대형 폰트)
+    draw.text((60, 205), title_text, fill=(255, 255, 255), font=font_main)
+    # 서브 후킹 헤드라인 (34px 네온 블루)
+    draw.text((60, 305), "실구매자 평점 & 300점 스펙 데이터 기반 TOP 3 실측 비교", fill=(56, 189, 248), font=font_sub)
+
+    # 중앙 하단 3대 검증 포인트 박스 (빈 공간 완벽 해소)
+    draw.rounded_rectangle([60, 390, 390, 465], radius=12, fill=(30, 41, 59), outline=(71, 85, 105), width=1)
+    draw.text((85, 412), "✓  단점 & 누진세 검증", fill=(226, 232, 240), font=font_tag)
+
+    draw.rounded_rectangle([415, 390, 745, 465], radius=12, fill=(30, 41, 59), outline=(71, 85, 105), width=1)
+    draw.text((440, 412), "✓  가성비 vs 프리미엄", fill=(226, 232, 240), font=font_tag)
+
+    draw.rounded_rectangle([770, 390, 1100, 465], radius=12, fill=(30, 41, 59), outline=(71, 85, 105), width=1)
+    draw.text((795, 412), "✓  카드할인 & 쿠폰 혜택", fill=(226, 232, 240), font=font_tag)
+
+    # 하단 브랜드 워터마크
+    draw.text((60, 565), f"⚡ {SITE_NAME} | {SITE_DOMAIN}", fill=(148, 163, 184), font=font_badge)
+    draw.text((880, 565), "독립적 데이터 스펙 큐레이션", fill=(100, 116, 139), font=font_badge)
 
     img.save(output_path, "WEBP", quality=90)
 
