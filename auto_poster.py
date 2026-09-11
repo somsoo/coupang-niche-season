@@ -20,7 +20,7 @@ if not api_keys_str:
     exit(1)
 
 API_KEYS = [k.strip() for k in api_keys_str.split(',') if k.strip()]
-MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-1.5-flash']
+MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash']
 
 def generate_with_retry(prompt, is_json=False):
     for key in API_KEYS:
