@@ -120,7 +120,6 @@ def generate_spec_review(keyword, products):
     p2 = products[1] if len(products) > 1 else p1
     p3 = products[2] if len(products) > 2 else p2
 
-    # ── Pass 1/3: 초안(Draft) 작성 ──────────────────────────────
     print("  ▶ [Pass 1/3] 3-Pick 스펙 비교 초안(Draft) 작성 중...")
     draft_prompt = f"""당신은 노써치(Nosearch) 및 와이어커터(Wirecutter) 수준의 대한민국 최상위 테크/가전 리뷰 수석 에디터입니다.
 주제 키워드: {keyword}
@@ -132,7 +131,7 @@ def generate_spec_review(keyword, products):
 
 위 3종을 바탕으로 다음 요소를 포함한 1차 초안을 작성하세요:
 - 3초 요약 박스 (<div class="summary-box">)
-- 구매 전 필수 체크 스펙 3가지 (정량적 수치 포함: dB, W 등)
+- 구매 전 필수 체크 스펙 3가지 (정량적 수치 포함: dB, W, 용량 등)
 - 제품별 상세 분석 (각 모델마다 장점 2개와 솔직한 단점 1개 명시)
 - 핵심 스펙 6열 비교 마크다운 테이블
 - 중간 링크 마커 '<!-- CTA_BUTTON_1 -->', '<!-- CTA_BUTTON_2 -->', '<!-- CTA_BUTTON_3 -->' 삽입
@@ -140,79 +139,57 @@ def generate_spec_review(keyword, products):
     draft = generate_with_retry(draft_prompt)
     time.sleep(1)
 
-    # ── Pass 2/3: 비판만 (JSON 출력, 재작성 없음) ────────────────
-    print("  ▶ [Pass 2/3] Google Reviews System 기준 집중 비판(Critique) 중... (재작성 없음)")
-    critique_prompt = f"""당신은 구글 공식 'Google Search Reviews System' 수석 평가관입니다.
-아래 초안을 읽고, 재작성은 절대 하지 말고 오직 문제점 분석만 수행하여 JSON으로 출력하세요.
+    print("  ▶ [Pass 2/3] 구글 Reviews System 300점 기준 심층 비판 및 결함 분석(Critic) 중...")
+    critic_prompt = f"""당신은 구글 공식 'Google Search Reviews System' 알고리즘 평가관이자 최고 수준의 팩트체커입니다.
+아래 작성된 1차 초안을 엄격하게 심사하여 독자가 느끼는 신뢰도와 구매 결정에 방해되는 결함을 비판하고 분석하세요.
 
-[평가 기준]
-1. AI 번역투/클리셰 표현 (예: "최적의 선택", "탁월한 성능" 등 뻔한 문구)
-2. 모호한 스펙 표현 (정량적 수치 없이 "빠르다", "조용하다" 등만 사용)
-3. 단점(Cons)이 솔직하지 않거나 너무 약하게 표현된 부분
-4. 독자 신뢰도를 해치는 과장 또는 낚시성 어조
-5. 구조적 누락 (요약박스/스펙표/CTA마커 중 빠진 것)
-6. 첫 3문장이 결론을 선제시하지 않는 경우
+[초안 텍스트]
+{draft}
 
-반드시 아래 JSON 형식으로만 답하세요:
+[심사 및 지적 기준]
+1. AI 특유의 판에 박힌 번역투, 공허한 미사여구, 무의미한 칭찬 반복 지적
+2. 구체적인 수치(소음 dB, 출력 W, 실제 체감 용량, 재질 등) 없이 두루뭉술하게 설명된 부분 지적
+3. 단점이 너무 무난하거나 칭찬 일색이라 신뢰도가 떨어지는 부분 지적 (치명적이거나 실제 사용자가 겪는 현실적 단점 요구)
+4. 스펙 비교표의 가독성과 정보 완결성 지적
+5. 마커 '<!-- CTA_BUTTON_1 -->', '<!-- CTA_BUTTON_2 -->', '<!-- CTA_BUTTON_3 -->' 보존 여부 확인
+
+반드시 다음 JSON 형식으로만 답변하세요:
 {{
-  "score": 0~100,
-  "critical_issues": ["치명적 문제 1", "치명적 문제 2"],
-  "minor_issues": ["경미한 문제 1", "경미한 문제 2"],
-  "strengths": ["잘 된 점 1", "잘 된 점 2"],
-  "rewrite_instructions": ["Pass 3에서 반드시 고쳐야 할 구체적 지시사항 1", "지시사항 2", "지시사항 3"]
+  "ai_phrases_to_remove": ["제거하거나 수정할 AI 번역투/과장 문장들"],
+  "specs_to_reinforce": ["더 구체적 수치나 팩트가 보강되어야 할 스펙 항목들"],
+  "cons_criticism": "단점이 솔직하고 현실적인지, 어떻게 보강해야 신뢰도를 극대화할 수 있는지",
+  "key_directives_for_pass3": ["Pass 3 재작성 시 반드시 반영해야 할 핵심 명령 3~5가지"]
 }}
+"""
+    critique_json_str = generate_with_retry(critic_prompt, is_json=True)
+    print(f"  🔍 결함 분석 완료 (지적 사항 반영 준비)")
+    time.sleep(1)
+
+    print("  ▶ [Pass 3/3] 비판 피드백 완벽 반영 및 최종 정밀 재작성(Final Rewrite) 중...")
+    final_rewrite_prompt = f"""당신은 대한민국 최고 테크/가전 리뷰 수석 에디터입니다.
+아래 [1차 초안]과 [Pass 2 심층 비판 리포트]를 완벽히 반영하여, 
+독자가 읽었을 때 '진짜 가전 전문가가 직접 비교 분석한 신뢰도 100%의 원고'로 최종 재작성(Rewrite)하세요.
 
 [1차 초안]
 {draft}
+
+[Pass 2 심층 비판 리포트]
+{critique_json_str}
+
+[필수 최종 작성 규칙]
+1. 제목이나 마크다운 H1 (#) 태그는 절대 출력하지 마세요. 바로 본문 첫 문장으로 시작하세요.
+2. 첫 3문장: 바쁜 현대인을 위해 왜 이 3개 모델로 압축했는지 핵심 결론을 직관적으로 선제시하세요.
+3. 3초 요약 박스 (<div class="summary-box">): 1위 국민템, 2위 가성비, 3위 프리미엄을 각각 1줄로 명확히 규정하세요.
+4. Pass 2 비판 반영:
+   - 비판 리포트에서 지적된 번역투/뻔한 칭찬을 완전히 삭제하세요.
+   - 구매 전 체크해야 할 스펙 기준 3가지를 정량적 수치와 함께 전문적으로 설명하세요.
+   - 3개 모델 분석 시 '👍 장점 2가지'와 '⚠️ 솔직한 단점/아쉬운 점 1가지'를 명확하고 날카롭게 작성하세요. 솔직한 단점이어야 구글 AI 필터를 통과합니다.
+5. 중간 링크 마커: 각 제품 설명 직후 단독 줄로 반드시 '<!-- CTA_BUTTON_1 -->', '<!-- CTA_BUTTON_2 -->', '<!-- CTA_BUTTON_3 -->'를 1회씩 그대로 유지하세요.
+6. 스펙 비교표: 3개 제품의 [포지셔닝 | 상품명 | 가격대 | 핵심스펙 1 | 핵심스펙 2 | 추천대상] 6열 마크다운 테이블을 완벽하게 완성하세요.
+7. 분량 및 톤앤매너: 2,000자 내외의 전문적이고 객관적이며 설득력 있는 어조를 유지하세요.
 """
-    critique_json_str = generate_with_retry(critique_prompt, is_json=True)
-    try:
-        import json as _json
-        critique = _json.loads(critique_json_str)
-        score = critique.get('score', '?')
-        critical = critique.get('critical_issues', [])
-        instructions = critique.get('rewrite_instructions', [])
-        print(f"    → 비판 점수: {score}/100 | 치명적 문제: {len(critical)}개 | 재작성 지시: {len(instructions)}개")
-    except Exception:
-        critique = {"rewrite_instructions": [], "critical_issues": []}
-        print("    → 비판 JSON 파싱 실패, 원문 사용")
-    time.sleep(1)
-
-    # ── Pass 3/3: 비판 결과 주입 → 정밀 재작성 ──────────────────
-    print("  ▶ [Pass 3/3] 비판 결과 기반 정밀 재작성(Rewrite) 중...")
-    rewrite_instructions_str = "\n".join(
-        [f"  - {inst}" for inst in critique.get('rewrite_instructions', [])]
-    ) or "  - 전반적으로 더 전문적이고 신뢰감 있는 톤으로 개선"
-
-    critical_issues_str = "\n".join(
-        [f"  - {issue}" for issue in critique.get('critical_issues', [])]
-    ) or "  - 없음"
-
-    rewrite_prompt = f"""당신은 상위 1% 테크 전문 에디터입니다.
-아래 1차 초안과 2차 비판 결과를 모두 참고하여, 지적된 문제를 완벽히 수정한 최종본을 작성하세요.
-
-[2차 비판에서 지적된 치명적 문제]
-{critical_issues_str}
-
-[Pass 3에서 반드시 반영할 재작성 지시사항]
-{rewrite_instructions_str}
-
-[절대 규칙 - 반드시 준수]
-1. 제목/H1(#) 태그 절대 출력 금지. 바로 본문 첫 문장으로 시작.
-2. 첫 3문장: 왜 이 3개 모델인지 핵심 결론을 직관적으로 선제시.
-3. <div class="summary-box"> 요약 박스 반드시 포함.
-4. 각 제품마다 '👍 장점 2가지' + '⚠️ 솔직한 단점 1가지' 명확히 구분.
-5. <!-- CTA_BUTTON_1 -->, <!-- CTA_BUTTON_2 -->, <!-- CTA_BUTTON_3 --> 마커 반드시 각 제품 직후에 1회씩 유지.
-6. [포지셔닝 | 상품명 | 가격대 | 핵심스펙 1 | 핵심스펙 2 | 추천대상] 6열 스펙 비교표 필수 포함.
-7. 상업적 낚시성 어조 완전 배제. 객관적·전문적 분석 톤 유지.
-
-[1차 초안 (참고용)]
-{draft}
-"""
-    final_review = generate_with_retry(rewrite_prompt)
+    final_review = generate_with_retry(final_rewrite_prompt)
     return final_review
-
-
 
 def create_hero_thumbnail(title_text, output_path):
     w, h = 1200, 675
