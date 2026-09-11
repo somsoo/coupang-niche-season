@@ -8,6 +8,11 @@
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        .banner-slim { aspect-ratio: 21 / 9; }
+    @supports not (aspect-ratio: 21 / 9) {
+      .banner-slim { height: 0; padding-bottom: 35%; position: relative; }
+      .banner-slim img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    }
     body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; color: #1e293b; }
     
     .prose p { margin-bottom: 1.5em !important; line-height: 1.8 !important; word-break: keep-all; }
