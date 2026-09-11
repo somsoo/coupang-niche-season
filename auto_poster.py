@@ -5,9 +5,6 @@ from io import BytesIO
 
 SITE_DOMAIN = "season.enjoy-onepage.com"
 SITE_NAME = "시즌 가전솔루션"
-ADSENSE_CLIENT = "ca-pub-2228289204702106"
-ADSENSE_SLOT_TOP = "2231432699"    # 상단 광고 (픽카드 위)
-ADSENSE_SLOT_MID = "5979106011"   # 중단 광고 (본문 뒤, 하단 금지)
 
 NAVER_CUSTOMER_ID = os.getenv('NAVER_CUSTOMER_ID', '1560667')
 NAVER_ACCESS_LICENSE = os.getenv('NAVER_ACCESS_LICENSE', '0100000000275b3c8ab39dd56bad01b6c00904dfb52a7b55ec7176e7e42c48521f51cc0117')
@@ -302,29 +299,6 @@ def main():
     review_body = review_body.replace("<!-- CTA_BUTTON_2 -->", btn2)
     review_body = review_body.replace("<!-- CTA_BUTTON_3 -->", btn3)
 
-    adsense_top_html = f"""
-<div class="ad-slot-wrap">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="{ADSENSE_CLIENT}"
-       data-ad-slot="{ADSENSE_SLOT_TOP}"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
-  <script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script>
-</div>
-"""
-
-    adsense_mid_html = f"""
-<div class="ad-slot-wrap">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="{ADSENSE_CLIENT}"
-       data-ad-slot="{ADSENSE_SLOT_MID}"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
-  <script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script>
-</div>
-"""
 
     ftc_notice = """
 <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 50px; margin-bottom: 20px;">
@@ -332,7 +306,9 @@ def main():
 </p>
 """
 
-    final_content = adsense_top_html + "\n\n" + cards_html + "\n\n" + review_body + "\n\n" + adsense_mid_html + "\n\n" + ftc_notice
+    # 광고는 _layouts/post.html 레이아웃에서 관리 (위치 변경 시 레이아웃 파일만 수정)
+    final_content = cards_html + "\n\n" + review_body + "\n\n" + ftc_notice
+
 
     now = datetime.datetime.now()
     date_str = now.strftime("%Y-%m-%d")
