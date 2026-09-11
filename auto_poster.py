@@ -189,6 +189,8 @@ def generate_spec_review(keyword, products):
 7. 분량 및 톤앤매너: 2,000자 내외의 전문적이고 객관적이며 설득력 있는 어조를 유지하세요.
 """
     final_review = generate_with_retry(final_rewrite_prompt)
+    final_review = re.sub(r'(?im)^(#+\s*)H[234][:\s.]*\s*', r'\1', final_review)
+    final_review = re.sub(r'^---.*?---\s*', '', final_review, flags=re.DOTALL)
     return final_review
 
 def create_hero_thumbnail(title_text, output_path):
