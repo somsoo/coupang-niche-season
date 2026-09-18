@@ -126,6 +126,28 @@
     /* 애드센스 컨테이너 */
     .ad-slot-wrap { margin: 2.5rem auto; text-align: center; width: 100%; max-width: 100%; overflow: hidden; }
   </style>
+
+  <!-- 🛡️ 전사 공통 모바일 레이아웃 쉴드 & 가로 덜컥거림 영구 방지 (Zero-Overflow Guard) -->
+  <style id="layout-shield">
+    html, body {
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+    }
+    main, article, .prose {
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    table {
+      display: block !important;
+      max-width: 100% !important;
+      overflow-x: auto !important;
+    }
+    .manual-ad-container, .manual-ad-container ins {
+      max-width: 100% !important;
+      overflow: hidden !important;
+    }
+  </style>
+
 </head>
 <body class="flex flex-col min-h-screen">
   <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
